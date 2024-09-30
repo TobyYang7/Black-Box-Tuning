@@ -467,6 +467,8 @@ class LMForwardAPI:
                                            'fnlp/cpt-large',
                                            ]:
                         hidden_states = outputs['encoder_hidden_states']
+                    elif self.model_name in ['llama','deepseek']:
+                        hidden_states = outputs['output_hidden_states'] # fix
                     else:
                         hidden_states = outputs['hidden_states']
                     for i, h in enumerate(hidden_states[1:-1]):

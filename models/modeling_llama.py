@@ -1173,6 +1173,8 @@ class LlamaForCausalLM(LlamaPreTrainedModel, GenerationMixin):
         return_dict: Optional[bool] = None,
         cache_position: Optional[torch.LongTensor] = None,
         num_logits_to_keep: int = 0,
+        
+        # todo: add prompt_embedding to the docstring
         prompt_embedding=None,
     ) -> Union[Tuple, CausalLMOutputWithPast]:
         r"""
@@ -1232,6 +1234,8 @@ class LlamaForCausalLM(LlamaPreTrainedModel, GenerationMixin):
             output_hidden_states=output_hidden_states,
             return_dict=return_dict,
             cache_position=cache_position,
+            
+            # todo
             prompt_embedding=prompt_embedding,
         )
 
