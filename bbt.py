@@ -25,15 +25,16 @@ from transformers import (
     BartConfig as CPTConfig,
     AutoTokenizer,
 )
-# from models.modeling_roberta import RobertaForMaskedLM
+from models.modeling_roberta import RobertaForMaskedLM
 # from models.modeling_bart import BartForConditionalGeneration
 # from models.modeling_t5 import T5ForConditionalGeneration
 # from models.modeling_gpt2 import GPT2LMHeadModel
 # from models.modeling_bert import BertForMaskedLM
 # from models.modeling_electra import ElectraForMaskedLM
 # from models.modeling_cpt import CPTForMaskedLM
-# from utils import hinge_loss
-# from sklearn.metrics import f1_score
+
+from utils import hinge_loss
+from sklearn.metrics import f1_score
 
 # todo: add llama
 from models.modeling_llama import LlamaForCausalLM
@@ -91,6 +92,8 @@ parser.add_argument(
     type=str,
     help='Path to your onnx model.'
 )
+
+parser.add_argument("--client", default=10, type=int)
 args = parser.parse_args()
 
 # below are free hyper-params
@@ -176,7 +179,7 @@ torch.manual_seed(seed)
 
 
 class LMForwardAPI:
-    def __init__(self, model_name='roberta-large', n_prompt_tokens=50, task_name='sst2',
+    def __init__(self, model_name='roberta-base', n_prompt_tokens=50, task_name='sst2',
                  loss_type='hinge', init_prompt_path=None):
         if model_name in ['roberta-base', 'roberta-large']:
             model_path = '/home/export/base/ycsc_wangbenyou/yangyz/online1/toby/Black-Box-Tuning/roberta-base'
@@ -425,10 +428,13 @@ class LMForwardAPI:
 
         return loss, perf
 
-    def eval(self, prompt_embedding=None, test_data=None):
+    def eval(self, prompt_embedding=None, test_data=None, fussion=False, avg_prompt_embedding=None):
         self.num_call += 1
         if prompt_embedding is None:
-            prompt_embedding = self.best_prompt
+            if fussion:
+                prompt_embedding = self.best_prompt + avg_prompt_embedding # fix
+            else:
+                prompt_embedding = self.best_prompt  
         if test_data is None:
             bsz = len(dev_data['input_ids'])  # batch size of dev data is the orignal batch size of training data
         else:
@@ -553,7 +559,7 @@ class LMForwardAPI:
             if parallel:
                 return all_losses
             else:
-                return loss
+                return loss, tmp_prompt
 
 
 if model_name in ['roberta-base', 'roberta-large']:
@@ -762,18 +768,33 @@ if parallel:
 
 # opt = cma.CMAOptions()
 start_time = time.time()
-while not es.stop():
+cnt = 0
+
+# while not es.stop():
+all_prompt_embedding = []
+for i in range(args.client):
     solutions = es.ask()
     if parallel:
         fitnesses = model_forward_api.eval(solutions)
     else:
-        fitnesses = [model_forward_api.eval(x) for x in solutions]
+        fitnesses = []
+
+        for x in solutions:
+            result = model_forward_api.eval(x)
+            fitnesses.append(result[0])
+            all_prompt_embedding.append(result[1])
+
     es.tell(solutions, fitnesses)
+    print('----------------------')
     # es.logger.add()  # write data to disc to be plotted
     # es.disp()
+    
+all_prompt_embedding_np = np.array(all_prompt_embedding)
+avg_prompt_embedding = np.mean(all_prompt_embedding_np, axis=0).flatten()
+
 end_time = time.time()
 print('Done. Elapsed time: {} (mins)'.format((end_time - start_time) / 60))
 print('Evaluate on test data...')
-test_acc = model_forward_api.eval(test_data=test_data)
+test_acc, _ = model_forward_api.eval(test_data=test_data, avg_prompt_embedding=avg_prompt_embedding, fussion=True)
 print('Test acc: {}'.format(round(test_acc, 4)))
 # fitlog.finish()

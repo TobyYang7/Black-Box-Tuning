@@ -11,7 +11,7 @@ time python deepbbt.py \
   --random_proj "normal" \
   --sigma 0.2 \
   --alpha 0.2 \
-  --popsize 20 \
+  --popsize 10 \
   --bound 0 \
   --budget 8000 \
   --print_every 50 \

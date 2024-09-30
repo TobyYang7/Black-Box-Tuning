@@ -7,10 +7,10 @@ time python bbt.py \
   --seed 42 \
   --loss_type "ce" \
   --cat_or_add "add" \
-  --budget 8000 \
-  --print_every 50 \
+  --budget 100 \
+  --print_every 1 \
   --eval_every 100 \
-  --model_name "llama" \
+  --model_name "roberta-base" \
   # --max_train_samples 32 \
   # --max_dev_samples 32 \
   # --max_test_samples 100

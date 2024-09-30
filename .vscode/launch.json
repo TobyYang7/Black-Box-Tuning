@@ -1,6 +1,7 @@
 {
   "version": "0.2.0",
   "configurations": [
+
     {
       "name": "Python: bbt.py",
       "type": "python",
@@ -25,13 +26,13 @@
         "--cat_or_add",
         "add",
         "--budget",
-        "8000",
+        "100",
         "--print_every",
-        "50",
+        "1",
         "--eval_every",
         "100",
         "--model_name",
-        "llama"
+        "roberta-base"
       ]
     }
   ]
