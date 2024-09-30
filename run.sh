@@ -8,7 +8,7 @@ time python bbt.py \
   --loss_type "ce" \
   --cat_or_add "add" \
   --budget 100 \
-  --print_every 1 \
+  --print_every 20 \
   --eval_every 100 \
   --model_name "roberta-base" \
   # --max_train_samples 32 \

@@ -559,7 +559,7 @@ class LMForwardAPI:
             if parallel:
                 return all_losses
             else:
-                return loss, tmp_prompt
+                return loss, tmp_prompt, perf
 
 
 if model_name in ['roberta-base', 'roberta-large']:
@@ -768,33 +768,56 @@ if parallel:
 
 # opt = cma.CMAOptions()
 start_time = time.time()
-cnt = 0
 
-# while not es.stop():
-all_prompt_embedding = []
-for i in range(args.client):
-    solutions = es.ask()
-    if parallel:
-        fitnesses = model_forward_api.eval(solutions)
-    else:
-        fitnesses = []
+all_prompt_embedding = []  # 存储每个 client 的最终 prompt_embedding
+all_solutions = []  # 存储所有 client 的 solutions
+all_fitnesses = []  # 存储所有 client 的 fitnesses
 
-        for x in solutions:
-            result = model_forward_api.eval(x)
-            fitnesses.append(result[0])
-            all_prompt_embedding.append(result[1])
+while not es.stop():
+    for i in range(args.client):
+        solutions = es.ask()  # 为每个 client 生成 solutions
 
-    es.tell(solutions, fitnesses)
+        if parallel:
+            # 评估每个 client 的 solutions
+            fitnesses = model_forward_api.eval(solutions)
+        else:
+            fitnesses = []
+            best_prompt_embedding = None
+            best_fitness = float('inf')
+
+            # 循环处理每个 solution
+            for x in solutions:
+                result = model_forward_api.eval(x)
+                fitnesses.append(result[0])
+
+                # 选择最好的 prompt embedding
+                if result[0] < best_fitness:
+                    best_fitness = result[0]
+                    best_prompt_embedding = result[1]
+
+            # 存储每个 client 的最佳 prompt_embedding
+            if best_prompt_embedding is not None:
+                all_prompt_embedding.append(best_prompt_embedding)
+
+        # 合并所有 client 的 solutions 和 fitnesses
+        all_solutions.extend(solutions)
+        all_fitnesses.extend(fitnesses)
+
+    # 一次性更新 CMAES，调用 es.tell() 只在这里进行
+    es.tell(all_solutions, all_fitnesses)
+
     print('----------------------')
-    # es.logger.add()  # write data to disc to be plotted
+    # es.logger.add()  # 可以选择添加日志记录
     # es.disp()
-    
+
+# 计算每个 client 的 prompt embedding 的平均值
 all_prompt_embedding_np = np.array(all_prompt_embedding)
 avg_prompt_embedding = np.mean(all_prompt_embedding_np, axis=0).flatten()
+
 
 end_time = time.time()
 print('Done. Elapsed time: {} (mins)'.format((end_time - start_time) / 60))
 print('Evaluate on test data...')
-test_acc, _ = model_forward_api.eval(test_data=test_data, avg_prompt_embedding=avg_prompt_embedding, fussion=True)
-print('Test acc: {}'.format(round(test_acc, 4)))
+_, _, test_acc = model_forward_api.eval(test_data=test_data, avg_prompt_embedding=avg_prompt_embedding, fussion=True)
+print('Test acc: {}'.format(round(test_acc.item(), 4)))
 # fitlog.finish()
