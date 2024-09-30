@@ -13,7 +13,9 @@ This repository is based on the original work presented in the papers:
 - [Black-Box Tuning for Language-Model-as-a-Service (ICML 2022)](https://arxiv.org/abs/2201.03514)
 - [BBTv2: Towards a Gradient-Free Future with Large Language Models (EMNLP 2022)](https://arxiv.org/abs/2205.11200)
 
-In this version, support for DeepSeek and LLaMA models has been added, further expanding the framework's versatility across different architectures.
+**In this version, support for DeepSeek and LLaMA models has been added, further expanding the framework's versatility across different architectures.**
+
+The original repo is [here](https://github.com/txsun1997/Black-Box-Tuning).
 
 ## Prepare your environment
 
