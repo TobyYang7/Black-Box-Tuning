@@ -468,6 +468,7 @@ class LMForwardAPI:
                                            ]:
                         hidden_states = outputs['encoder_hidden_states']
                     elif self.model_name in ['llama','deepseek']:
+                        print("\033[94mOutput keys:\033[0m", outputs.keys())
                         hidden_states = outputs['output_hidden_states'] # fix
                     else:
                         hidden_states = outputs['hidden_states']
