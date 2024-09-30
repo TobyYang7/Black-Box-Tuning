@@ -23,16 +23,29 @@ from transformers import (
     GPT2Config,
     GPT2Tokenizer,
     BartConfig as CPTConfig,
+    AutoTokenizer,
 )
-from models.modeling_roberta import RobertaForMaskedLM
-from models.modeling_bart import BartForConditionalGeneration
-from models.modeling_t5 import T5ForConditionalGeneration
-from models.modeling_gpt2 import GPT2LMHeadModel
-from models.modeling_bert import BertForMaskedLM
-from models.modeling_electra import ElectraForMaskedLM
-from models.modeling_cpt import CPTForMaskedLM
-from utils import hinge_loss
-from sklearn.metrics import f1_score
+# from models.modeling_roberta import RobertaForMaskedLM
+# from models.modeling_bart import BartForConditionalGeneration
+# from models.modeling_t5 import T5ForConditionalGeneration
+# from models.modeling_gpt2 import GPT2LMHeadModel
+# from models.modeling_bert import BertForMaskedLM
+# from models.modeling_electra import ElectraForMaskedLM
+# from models.modeling_cpt import CPTForMaskedLM
+# from utils import hinge_loss
+# from sklearn.metrics import f1_score
+
+# todo: add llama
+from models.modeling_llama import LlamaForCausalLM
+from models.configuration_llama import LlamaConfig
+from transformers import AutoTokenizer, GenerationConfig
+from transformers import BitsAndBytesConfig
+
+# todo: add deepseek
+from models.modeling_deepseek import DeepseekV2ForCausalLM
+from models.configuration_deepseek import DeepseekV2Config
+from transformers import AutoTokenizer, GenerationConfig
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--model_name", default='roberta-large',
@@ -42,7 +55,7 @@ parser.add_argument("--model_name", default='roberta-large',
                              'facebook/bart-base', 'facebook/bart-large',
                              't5-small', 't5-base', 't5-large', 't5-3b',
                              'gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl',
-                             'fnlp/cpt-large'], type=str)
+                             'fnlp/cpt-large','llama','deepseek'], type=str)
 parser.add_argument("--task_name", default='sst2', type=str)
 parser.add_argument("--n_prompt_tokens", default=50, type=int)
 parser.add_argument("--intrinsic_dim", default=500, type=int)
@@ -62,6 +75,9 @@ parser.add_argument("--seed", default=42, type=int)
 parser.add_argument("--loss_type", default='ce', type=str)
 parser.add_argument("--cat_or_add", default='add', type=str)
 parser.add_argument("--parallel", action='store_true', help='Whether to allow parallel evaluation')
+parser.add_argument("--max_train_samples", default=None, type=int, help="Max number of training samples.")
+parser.add_argument("--max_dev_samples", default=None, type=int, help="Max number of validation samples.")
+parser.add_argument("--max_test_samples", default=None, type=int, help="Max number of test samples.")
 parser.add_argument(
     "--inference_framework",
     default='pt',
@@ -88,6 +104,12 @@ elif model_name in ['gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl']:
 elif model_name in ['fnlp/cpt-large']:
     from dataloaders.dataloader_cpt import ChnSentLoader, AmazonLoader, THUCNewsLoader, BQLoader, CMNLILoader, CCPMLoader, TNewsLoader, OCNLILoader, LCQMCLoader, C3Loader
     from metrics.metrics_cpt import ChnSentMetric, AmazonMetric, THUCNewsMetric, BQMetric, CMNLIMetric, CCPMMetric, TNewsMetric, OCNLIMetric, LCQMCMetric, C3Metric
+elif model_name in ['llama']:
+    from dataloaders.dataloader_llama import SST2Loader, AGNewsLoader, YelpPLoader, DBPediaLoader, RTELoader, MRPCLoader, SNLILoader
+    from metrics.metrics_llama import SST2Metric, AGNewsMetric, YelpPMetric, DBPediaMetric, RTEMetric, MRPCMetric, SNLIMetric
+# elif model_name in ['deepseek']:
+#     from dataloaders.dataloader_deepseek import ChnSentLoader, AmazonLoader, THUCNewsLoader, BQLoader, CMNLILoader, CCPMLoader, TNewsLoader, OCNLILoader, LCQMCLoader, C3Loader
+#     from metrics.metrics_deepseek import ChnSentMetric, AmazonMetric, THUCNewsMetric, BQMetric, CMNLIMetric, CCPMMetric, TNewsMetric, OCNLIMetric, LCQMCMetric, C3Metric
 else:
     from dataloaders.dataloader import SST2Loader, AGNewsLoader, YelpPLoader, DBPediaLoader, RTELoader, MRPCLoader, SNLILoader
     from metrics.metrics import SST2Metric, AGNewsMetric, YelpPMetric, DBPediaMetric, RTEMetric, MRPCMetric, SNLIMetric
@@ -132,7 +154,7 @@ if cat_or_add == 'add':
 else:
     init_prompt_path = './nli_base_prompt.pt'
 
-if task_name in ['sst2', 'yelpp', 'rte', 'mrpc', 'chnsent', 'lcqmc', 'bq']:
+if task_name in ["sst2", "yelpp", "rte", "mrpc", "chnsent", "lcqmc", "bq", "qnli", "qqp", "cola", "wnli"]:
     num_labels = 2
 elif task_name in ['snli', 'cmnli', 'ocnli']:
     num_labels = 3
@@ -147,37 +169,7 @@ elif task_name in ['dbpedia', 'tnews']:
 else:
     raise ValueError
 
-# save_path = '{}_results/{}_results/D_{}_d_{}_data_{}_{}_range_{}_loss_{}_budget_{}_seed_{}_{}_{}_{}_{}'.format(
-#     model_name.replace('/', '-'),
-#     task_name,
-#     n_prompt_tokens * 1024,
-#     intrinsic_dim,
-#     k_shot * num_labels,
-#     alg,
-#     bound,
-#     loss_type,
-#     budget,
-#     seed,
-#     cat_or_add,
-#     random_proj,
-#     'parallel' if parallel else 'serial',
-#     inference_framework
-# )
-# print('Results will be saved in {}'.format(save_path))
-#
-# if os.path.exists(save_path):
-#     print('Experiment already run.')
-#     exit()
-#
-# args.save_path = save_path
 args.bbt_version = 'bbt'
-
-# log_dir = './logs'
-# fitlog.set_log_dir(log_dir)
-# fitlog.commit(__file__, fit_msg=save_path)
-# fitlog.add_hyper(args)
-# fitlog.add_hyper_in_file(__file__)
-
 random.seed(seed)
 np.random.seed(seed)
 torch.manual_seed(seed)
@@ -187,10 +179,11 @@ class LMForwardAPI:
     def __init__(self, model_name='roberta-large', n_prompt_tokens=50, task_name='sst2',
                  loss_type='hinge', init_prompt_path=None):
         if model_name in ['roberta-base', 'roberta-large']:
-            self.config = RobertaConfig.from_pretrained(model_name)
-            self.tokenizer = RobertaTokenizer.from_pretrained(model_name)
+            model_path = '/home/export/base/ycsc_wangbenyou/yangyz/online1/toby/Black-Box-Tuning/roberta-base'
+            self.config = RobertaConfig.from_pretrained(model_path)
+            self.tokenizer = RobertaTokenizer.from_pretrained(model_path)
             self.model = RobertaForMaskedLM.from_pretrained(
-                model_name,
+                model_path,
                 config=self.config,
                 n_prompt_tokens=n_prompt_tokens,
                 inference_framework=inference_framework,
@@ -205,43 +198,62 @@ class LMForwardAPI:
                 config=self.config,
                 n_prompt_tokens=n_prompt_tokens,
             )
-        elif model_name in ['google/electra-base-generator', 'google/electra-large-generator']:
-            self.config = ElectraConfig.from_pretrained(model_name)
-            self.tokenizer = ElectraTokenizer.from_pretrained(model_name)
-            self.model = ElectraForMaskedLM.from_pretrained(
-                model_name,
-                config=self.config,
-                n_prompt_tokens=n_prompt_tokens,
-            )
-        elif model_name in ['facebook/bart-base', 'facebook/bart-large']:
-            self.config = BartConfig.from_pretrained(model_name)
-            self.tokenizer = BartTokenizer.from_pretrained(model_name)
-            self.model = BartForConditionalGeneration.from_pretrained(
-                model_name,
-                config=self.config,
-                n_prompt_tokens=n_prompt_tokens,
-            )
-        elif model_name in ['t5-small', 't5-base', 't5-large', 't5-3b']:
-            self.config = T5Config.from_pretrained(model_name)
-            self.tokenizer = T5Tokenizer.from_pretrained(model_name)
-            self.model = T5ForConditionalGeneration.from_pretrained(
-                model_name,
-                config=self.config,
-                n_prompt_tokens=n_prompt_tokens,
-            )
+        # elif model_name in ['google/electra-base-generator', 'google/electra-large-generator']:
+        #     self.config = ElectraConfig.from_pretrained(model_name)
+        #     self.tokenizer = ElectraTokenizer.from_pretrained(model_name)
+        #     self.model = ElectraForMaskedLM.from_pretrained(
+        #         model_name,
+        #         config=self.config,
+        #         n_prompt_tokens=n_prompt_tokens,
+        #     )
+        # elif model_name in ['facebook/bart-base', 'facebook/bart-large']:
+        #     self.config = BartConfig.from_pretrained(model_name)
+        #     self.tokenizer = BartTokenizer.from_pretrained(model_name)
+        #     self.model = BartForConditionalGeneration.from_pretrained(
+        #         model_name,
+        #         config=self.config,
+        #         n_prompt_tokens=n_prompt_tokens,
+        #     )
+        # elif model_name in ['t5-small', 't5-base', 't5-large', 't5-3b']:
+        #     self.config = T5Config.from_pretrained(model_name)
+        #     self.tokenizer = T5Tokenizer.from_pretrained(model_name)
+        #     self.model = T5ForConditionalGeneration.from_pretrained(
+        #         model_name,
+        #         config=self.config,
+        #         n_prompt_tokens=n_prompt_tokens,
+        #     )
+        # elif model_name in ['fnlp/cpt-large']:
+        #     self.config = CPTConfig.from_pretrained(model_name)
+        #     self.tokenizer = BertTokenizer.from_pretrained(model_name)
+        #     self.model = CPTForMaskedLM.from_pretrained(
+        #         model_name,
+        #         config=self.config,
+        #         n_prompt_tokens=n_prompt_tokens,
+        #     )
         elif model_name in ['gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl']:
-            self.config = GPT2Config.from_pretrained(model_name)
-            self.tokenizer = GPT2Tokenizer.from_pretrained(model_name)
+            model_path = '/home/export/base/ycsc_wangbenyou/yangyz/online1/toby/Black-Box-Tuning/gpt2'
+            self.config = GPT2Config.from_pretrained(model_path)
+            self.tokenizer = GPT2Tokenizer.from_pretrained(model_path)
             self.model = GPT2LMHeadModel.from_pretrained(
-                model_name,
+                model_path,
                 config=self.config,
                 n_prompt_tokens=n_prompt_tokens,
             )
-        elif model_name in ['fnlp/cpt-large']:
-            self.config = CPTConfig.from_pretrained(model_name)
-            self.tokenizer = BertTokenizer.from_pretrained(model_name)
-            self.model = CPTForMaskedLM.from_pretrained(
-                model_name,
+        elif model_name in ['llama']:
+            model_path = '/home/export/base/ycsc_wangbenyou/yangyz/online1/toby/Black-Box-Tuning/Llama-3.1-8B-Instruct'
+            self.config = LlamaConfig.from_pretrained(model_path)
+            self.tokenizer = AutoTokenizer.from_pretrained(model_path)
+            self.model = LlamaForCausalLM.from_pretrained(
+                model_path,
+                config=self.config,
+                n_prompt_tokens=n_prompt_tokens,
+            )
+        elif model_name in ['deepseek']:
+            model_path = '/home/export/base/ycsc_wangbenyou/yangyz/online1/toby/Black-Box-Tuning/Llama-3.1-8B-Instruct' # fix
+            self.config = DeepseekV2Config.from_pretrained(model_path)
+            self.tokenizer = AutoTokenizer.from_pretrained(model_path)
+            self.model = DeepseekV2ForCausalLM.from_pretrained(
+                model_path,
                 config=self.config,
                 n_prompt_tokens=n_prompt_tokens,
             )
@@ -276,7 +288,7 @@ class LMForwardAPI:
                 embedding = self.model.model.get_input_embeddings().weight.clone().cpu()
             elif model_name in ['gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl']:
                 embedding = self.model.transformer.get_input_embeddings().weight.clone().cpu()
-            else:  # T5
+            else:  # T5, llama3, deepseek
                 embedding = self.model.get_input_embeddings().weight.clone().cpu()
             # embedding = embedding[1000: 2000]
             mu_hat = np.mean(embedding.reshape(-1).detach().cpu().numpy())
@@ -321,7 +333,7 @@ class LMForwardAPI:
             self.metric_name = 'RTEMetric'
         elif task_name == 'mrpc':
             self.metric = MRPCMetric(target='labels', pred='logits', tokenizer=tokenizer)
-            self.metric_key = 'f1'
+            self.metric_key = 'f1' # fix
             self.metric_name = 'MRPCMetric'
         elif task_name == 'snli':
             self.metric = SNLIMetric(target='labels', pred='logits', tokenizer=tokenizer)
@@ -367,6 +379,18 @@ class LMForwardAPI:
             self.metric = C3Metric(target='labels', pred='logits', tokenizer=tokenizer)
             self.metric_key = 'acc'
             self.metric_name = 'C3Metric'
+        # elif task_name == "qqp":
+        #     self.metric = QQPMetric(target="labels", pred="logits", tokenizer=self.tokenizer)
+        #     self.metric_key = "acc"
+        #     self.metric_name = "QQPMetric"
+        # elif task_name == "cola":
+        #     self.metric = CoLAMetric(target="labels", pred="logits", tokenizer=self.tokenizer)
+        #     self.metric_key = "acc"
+        #     self.metric_name = "CoLAMetric"
+        # elif task_name == "wnli":
+        #     self.metric = WNLIMetric(target="labels", pred="logits", tokenizer=self.tokenizer)
+        #     self.metric_key = "acc"
+        #     self.metric_name = "WNLIMetric"
         else:
             raise NotImplementedError
         self.margin = self.metric.margin
@@ -452,7 +476,7 @@ class LMForwardAPI:
                         decoder_input_ids=train_data['decoder_input_ids'],
                         decoder_attention_mask=train_data['decoder_attention_mask'],
                     )['logits']
-                elif model_name in ['gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl']:
+                elif model_name in ['gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl','llama','deepseek']:
                     logits = self.model(
                         input_ids=train_data['input_ids'],
                         attention_mask=train_data['attention_mask'],
@@ -479,16 +503,8 @@ class LMForwardAPI:
                 prompt_embedding = pe_list[best_sol]  # to be prepended to the input
             else:  # single query
                 loss, perf = self.calc_metric(logits, train_data['labels'])
-            # fitlog.add_loss(loss, name=self.loss_type, step=self.num_call)
-            # fitlog.add_metric(perf, name='train_acc', step=self.num_call)
-
             if perf > self.best_train_perf:
                 self.best_train_perf = perf
-                # fitlog.add_best_metric(self.best_train_perf, name='train_acc')
-
-            # if self.save_path is not None:
-            #     with open(os.path.join(self.save_path, 'train_acc.txt'), 'a') as fout:
-            #         fout.write('{}\t{}\n'.format(self.num_call, perf))
 
             if self.num_call % self.print_every == 0:
                 print(
@@ -512,7 +528,7 @@ class LMForwardAPI:
                             decoder_input_ids=dev_data['decoder_input_ids'],
                             decoder_attention_mask=dev_data['decoder_attention_mask'],
                         )['logits']
-                    elif model_name in ['gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl']:
+                    elif model_name in ['gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl', 'llama', 'deepseek']:
                         logits = self.model(
                             input_ids=dev_data['input_ids'],
                             attention_mask=dev_data['attention_mask'],
@@ -525,14 +541,10 @@ class LMForwardAPI:
                         )['logits']
 
                 dev_loss, dev_perf = self.calc_metric(logits, dev_data['labels'])
-                # fitlog.add_metric(dev_perf, name='dev_acc', step=self.num_call)
                 if dev_perf > self.best_dev_perf:
                     self.best_dev_perf = dev_perf
-                    # fitlog.add_best_metric(self.best_dev_perf, name='dev_acc')
                     self.best_prompt = copy.deepcopy(tmp_prompt)
-                # if self.save_path is not None:
-                #     with open(os.path.join(self.save_path, 'dev_acc.txt'), 'a') as fout:
-                #         fout.write('{}\t{}\n'.format(self.num_call, dev_loss))
+
                 print('Dev loss: {}. Dev perf: {}. Best dev perf: {}'.format(
                     round(float(dev_loss), 4),
                     round(float(dev_perf), 4),
@@ -545,7 +557,8 @@ class LMForwardAPI:
 
 
 if model_name in ['roberta-base', 'roberta-large']:
-    tokenizer = RobertaTokenizer.from_pretrained(model_name)
+    model_path = '/home/export/base/ycsc_wangbenyou/yangyz/online1/toby/Black-Box-Tuning/roberta-base'
+    tokenizer = RobertaTokenizer.from_pretrained(model_path)
 elif model_name in ['bert-base-uncased', 'bert-large-uncased', 'fnlp/cpt-large']:
     tokenizer = BertTokenizer.from_pretrained(model_name)
 elif model_name in ['google/electra-base-generator', 'google/electra-large-generator']:
@@ -555,7 +568,14 @@ elif model_name in ['facebook/bart-base', 'facebook/bart-large']:
 elif model_name in ['t5-small', 't5-base', 't5-large', 't5-3b']:
     tokenizer = T5Tokenizer.from_pretrained(model_name)
 elif model_name in ['gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl']:
-    tokenizer = GPT2Tokenizer.from_pretrained(model_name)
+    model_path = '/home/export/base/ycsc_wangbenyou/yangyz/online1/toby/Black-Box-Tuning/gpt2'
+    tokenizer = GPT2Tokenizer.from_pretrained(model_path)
+elif model_name in ['llama']:
+    model_path = '/home/export/base/ycsc_wangbenyou/yangyz/online1/toby/Black-Box-Tuning/Llama-3.1-8B-Instruct'
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
+elif model_name in ['deepseek']:
+    model_path = '/home/export/base/ycsc_wangbenyou/yangyz/online1/toby/Black-Box-Tuning/DeepSeek-V2-Lite'
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
 else:
     raise NotImplementedError
 
@@ -626,7 +646,7 @@ def construct_true_few_shot_data(train_data, k_shot):
     if model_name in ['t5-small', 't5-base', 't5-large', 't5-3b']:
         new_train_data.set_input("input_ids", "attention_mask", "decoder_input_ids", "decoder_attention_mask")
         new_dev_data.set_input("input_ids", "attention_mask", "decoder_input_ids", "decoder_attention_mask")
-    elif model_name in ['gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl']:
+    elif model_name in ['gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl','llama','deepseek']:
         new_train_data.set_input("input_ids", "attention_mask")
         new_dev_data.set_input("input_ids", "attention_mask")
     else:
@@ -658,45 +678,60 @@ print('\n# of test data: {}'.format(len(test_data)))
 print('Example:')
 print(test_data[0])
 
+
+# 设置训练集数据
 if model_name in ['t5-small', 't5-base', 't5-large', 't5-3b']:
     train_data = {
-        'input_ids': torch.tensor(train_data['input_ids'].get(list(range(len(train_data))))),
-        'attention_mask': torch.tensor(train_data['attention_mask'].get(list(range(len(train_data))))),
-        'decoder_input_ids': torch.tensor(train_data['decoder_input_ids'].get(list(range(len(train_data))))),
-        'decoder_attention_mask': torch.tensor(train_data['decoder_attention_mask'].get(list(range(len(train_data))))),
-        'labels': torch.tensor(train_data['labels'].get(list(range(len(train_data))))),
+        'input_ids': torch.tensor(train_data['input_ids'].get(list(range(len(train_data))) if args.max_train_samples is None else list(range(min(len(train_data), args.max_train_samples))))),
+        'attention_mask': torch.tensor(train_data['attention_mask'].get(list(range(len(train_data))) if args.max_train_samples is None else list(range(min(len(train_data), args.max_train_samples))))),
+        'decoder_input_ids': torch.tensor(train_data['decoder_input_ids'].get(list(range(len(train_data))) if args.max_train_samples is None else list(range(min(len(train_data), args.max_train_samples))))),
+        'decoder_attention_mask': torch.tensor(train_data['decoder_attention_mask'].get(list(range(len(train_data))) if args.max_train_samples is None else list(range(min(len(train_data), args.max_train_samples))))),
+        'labels': torch.tensor(train_data['labels'].get(list(range(len(train_data))) if args.max_train_samples is None else list(range(min(len(train_data), args.max_train_samples))))),
     }
     dev_data = {
-        'input_ids': torch.tensor(dev_data['input_ids'].get(list(range(len(dev_data))))),
-        'attention_mask': torch.tensor(dev_data['attention_mask'].get(list(range(len(dev_data))))),
-        'decoder_input_ids': torch.tensor(dev_data['decoder_input_ids'].get(list(range(len(dev_data))))),
-        'decoder_attention_mask': torch.tensor(dev_data['decoder_attention_mask'].get(list(range(len(dev_data))))),
-        'labels': torch.tensor(dev_data['labels'].get(list(range(len(dev_data))))),
+        'input_ids': torch.tensor(dev_data['input_ids'].get(list(range(len(dev_data))) if args.max_dev_samples is None else list(range(min(len(dev_data), args.max_dev_samples))))),
+        'attention_mask': torch.tensor(dev_data['attention_mask'].get(list(range(len(dev_data))) if args.max_dev_samples is None else list(range(min(len(dev_data), args.max_dev_samples))))),
+        'decoder_input_ids': torch.tensor(dev_data['decoder_input_ids'].get(list(range(len(dev_data))) if args.max_dev_samples is None else list(range(min(len(dev_data), args.max_dev_samples))))),
+        'decoder_attention_mask': torch.tensor(dev_data['decoder_attention_mask'].get(list(range(len(dev_data))) if args.max_dev_samples is None else list(range(min(len(dev_data), args.max_dev_samples))))),
+        'labels': torch.tensor(dev_data['labels'].get(list(range(len(dev_data))) if args.max_dev_samples is None else list(range(min(len(dev_data), args.max_dev_samples))))),
     }
-elif model_name in ['gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl']:
+elif model_name in ['gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl', 'llama', 'deepseek']:
     train_data = {
-        'input_ids': torch.tensor(train_data['input_ids'].get(list(range(len(train_data))))),
-        'attention_mask': torch.tensor(train_data['attention_mask'].get(list(range(len(train_data))))),
-        'labels': torch.tensor(train_data['labels'].get(list(range(len(train_data))))),
+        'input_ids': torch.tensor(train_data['input_ids'].get(list(range(len(train_data))) if args.max_train_samples is None else list(range(min(len(train_data), args.max_train_samples))))),
+        'attention_mask': torch.tensor(train_data['attention_mask'].get(list(range(len(train_data))) if args.max_train_samples is None else list(range(min(len(train_data), args.max_train_samples))))),
+        'labels': torch.tensor(train_data['labels'].get(list(range(len(train_data))) if args.max_train_samples is None else list(range(min(len(train_data), args.max_train_samples))))),
     }
     dev_data = {
-        'input_ids': torch.tensor(dev_data['input_ids'].get(list(range(len(dev_data))))),
-        'attention_mask': torch.tensor(dev_data['attention_mask'].get(list(range(len(dev_data))))),
-        'labels': torch.tensor(dev_data['labels'].get(list(range(len(dev_data))))),
+        'input_ids': torch.tensor(dev_data['input_ids'].get(list(range(len(dev_data))) if args.max_dev_samples is None else list(range(min(len(dev_data), args.max_dev_samples))))),
+        'attention_mask': torch.tensor(dev_data['attention_mask'].get(list(range(len(dev_data))) if args.max_dev_samples is None else list(range(min(len(dev_data), args.max_dev_samples))))),
+        'labels': torch.tensor(dev_data['labels'].get(list(range(len(dev_data))) if args.max_dev_samples is None else list(range(min(len(dev_data), args.max_dev_samples))))),
     }
 else:
     train_data = {
-        'input_ids': torch.tensor(train_data['input_ids'].get(list(range(len(train_data))))),
-        'attention_mask': torch.tensor(train_data['attention_mask'].get(list(range(len(train_data))))),
-        'mask_pos': torch.tensor(train_data['mask_pos'].get(list(range(len(train_data))))),
-        'labels': torch.tensor(train_data['labels'].get(list(range(len(train_data))))),
+        'input_ids': torch.tensor(train_data['input_ids'].get(list(range(len(train_data))) if args.max_train_samples is None else list(range(min(len(train_data), args.max_train_samples))))),
+        'attention_mask': torch.tensor(train_data['attention_mask'].get(list(range(len(train_data))) if args.max_train_samples is None else list(range(min(len(train_data), args.max_train_samples))))),
+        'mask_pos': torch.tensor(train_data['mask_pos'].get(list(range(len(train_data))) if args.max_train_samples is None else list(range(min(len(train_data), args.max_train_samples))))),
+        'labels': torch.tensor(train_data['labels'].get(list(range(len(train_data))) if args.max_train_samples is None else list(range(min(len(train_data), args.max_train_samples))))),
     }
     dev_data = {
-        'input_ids': torch.tensor(dev_data['input_ids'].get(list(range(len(dev_data))))),
-        'attention_mask': torch.tensor(dev_data['attention_mask'].get(list(range(len(dev_data))))),
-        'mask_pos': torch.tensor(dev_data['mask_pos'].get(list(range(len(dev_data))))),
-        'labels': torch.tensor(dev_data['labels'].get(list(range(len(dev_data))))),
+        'input_ids': torch.tensor(dev_data['input_ids'].get(list(range(len(dev_data))) if args.max_dev_samples is None else list(range(min(len(dev_data), args.max_dev_samples))))),
+        'attention_mask': torch.tensor(dev_data['attention_mask'].get(list(range(len(dev_data))) if args.max_dev_samples is None else list(range(min(len(dev_data), args.max_dev_samples))))),
+        'mask_pos': torch.tensor(dev_data['mask_pos'].get(list(range(len(dev_data))) if args.max_dev_samples is None else list(range(min(len(dev_data), args.max_dev_samples))))),
+        'labels': torch.tensor(dev_data['labels'].get(list(range(len(dev_data))) if args.max_dev_samples is None else list(range(min(len(dev_data), args.max_dev_samples))))),
     }
+
+# 设置测试集数据
+test_data = {
+    'input_ids': torch.tensor(test_data['input_ids'].get(list(range(len(test_data))) if args.max_test_samples is None else list(range(min(len(test_data), args.max_test_samples))))),
+    'attention_mask': torch.tensor(test_data['attention_mask'].get(list(range(len(test_data))) if args.max_test_samples is None else list(range(min(len(test_data), args.max_test_samples))))),
+    'labels': torch.tensor(test_data['labels'].get(list(range(len(test_data))) if args.max_test_samples is None else list(range(min(len(test_data), args.max_test_samples))))),
+}
+
+# 打印每个数据集的大小
+print(f"# of train data: {len(train_data['input_ids'])}")
+print(f"# of dev data: {len(dev_data['input_ids'])}")
+print(f"# of test data: {len(test_data['input_ids'])}")
+
 
 model_forward_api = LMForwardAPI(
     model_name=model_name,

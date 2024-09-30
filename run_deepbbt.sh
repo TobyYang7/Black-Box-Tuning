@@ -1,0 +1,18 @@
+time python deepbbt.py \
+  --model_name "llama"\
+  --task_name "sst2" \
+  --n_prompt_tokens 50 \
+  --intrinsic_dim 500 \
+  --k_shot 16 \
+  --device "cuda:0" \
+  --seed 42 \
+  --loss_type "ce" \
+  --cat_or_add "add" \
+  --random_proj "normal" \
+  --sigma 0.2 \
+  --alpha 0.2 \
+  --popsize 20 \
+  --bound 0 \
+  --budget 8000 \
+  --print_every 50 \
+  --eval_every 100

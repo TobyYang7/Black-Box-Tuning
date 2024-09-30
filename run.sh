@@ -1,4 +1,4 @@
-python bbt.py \
+time python bbt.py \
   --task_name "sst2" \
   --n_prompt_tokens 50 \
   --intrinsic_dim 500 \
@@ -9,4 +9,8 @@ python bbt.py \
   --cat_or_add "add" \
   --budget 8000 \
   --print_every 50 \
-  --eval_every 100
+  --eval_every 100 \
+  --model_name "llama" \
+  # --max_train_samples 32 \
+  # --max_dev_samples 32 \
+  # --max_test_samples 100

@@ -21,14 +21,27 @@ from transformers import (
     GPT2Config,
     GPT2Tokenizer,
 )
-from models.deep_modeling_roberta import RobertaForMaskedLM
-from models.deep_modeling_bart import BartForConditionalGeneration
-from models.deep_modeling_t5 import T5ForConditionalGeneration
-from models.deep_modeling_gpt2 import GPT2LMHeadModel
-from models.deep_modeling_bert import BertForMaskedLM
-from models.deep_modeling_cpt import CPTForMaskedLM
-from utils import hinge_loss
-from sklearn.metrics import f1_score
+
+# todo: add roberta
+# from models.deep_modeling_roberta import RobertaForMaskedLM
+# from models.deep_modeling_bart import BartForConditionalGeneration
+# from models.deep_modeling_t5 import T5ForConditionalGeneration
+# from models.deep_modeling_gpt2 import GPT2LMHeadModel
+# from models.deep_modeling_bert import BertForMaskedLM
+# from models.deep_modeling_cpt import CPTForMaskedLM
+# from utils import hinge_loss
+# from sklearn.metrics import f1_score
+
+# todo: add llama
+from models.modeling_llama import LlamaForCausalLM
+from models.configuration_llama import LlamaConfig
+from transformers import AutoTokenizer, GenerationConfig
+from transformers import BitsAndBytesConfig
+
+# todo: add deepseek
+from models.modeling_deepseek import DeepseekV2ForCausalLM
+from models.configuration_deepseek import DeepseekV2Config
+from transformers import AutoTokenizer, GenerationConfig
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--model_name", default='roberta-large',
@@ -38,6 +51,7 @@ parser.add_argument("--model_name", default='roberta-large',
                              't5-small', 't5-base', 't5-large', 't5-3b',
                              'gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl',
                              'fnlp/cpt-large',
+                             'llama','deepseek'
                              ], type=str)
 parser.add_argument("--task_name", default='sst2', type=str)
 parser.add_argument("--n_prompt_tokens", default=50, type=int)
@@ -86,6 +100,12 @@ elif model_name in ['fnlp/cpt-large']:
         OCNLILoader, LCQMCLoader, C3Loader
     from metrics.metrics_cpt import ChnSentMetric, AmazonMetric, THUCNewsMetric, BQMetric, CMNLIMetric, CCPMMetric, TNewsMetric, \
         OCNLIMetric, LCQMCMetric, C3Metric
+elif model_name in ['llama']:
+    from dataloaders.dataloader_llama import SST2Loader, AGNewsLoader, YelpPLoader, DBPediaLoader, RTELoader, MRPCLoader, SNLILoader
+    from metrics.metrics_llama import SST2Metric, AGNewsMetric, YelpPMetric, DBPediaMetric, RTEMetric, MRPCMetric, SNLIMetric
+# elif model_name in ['deepseek']:
+#     from dataloaders.dataloader_deepseek import ChnSentLoader, AmazonLoader, THUCNewsLoader, BQLoader, CMNLILoader, CCPMLoader, TNewsLoader, OCNLILoader, LCQMCLoader, C3Loader
+#     from metrics.metrics_deepseek import ChnSentMetric, AmazonMetric, THUCNewsMetric, BQMetric, CMNLIMetric, CCPMMetric, TNewsMetric, OCNLIMetric, LCQMCMetric, C3Metric
 else:
     from dataloaders.dataloader import SST2Loader, AGNewsLoader, YelpPLoader, DBPediaLoader, RTELoader, MRPCLoader, SNLILoader
     from metrics.metrics import SST2Metric, AGNewsMetric, YelpPMetric, DBPediaMetric, RTEMetric, MRPCMetric, SNLIMetric
@@ -123,7 +143,7 @@ if cat_or_add == 'add':
 else:
     init_prompt_path = './nli_base_prompt.pt'
 
-if task_name in ['sst2', 'yelpp', 'rte', 'mrpc', 'chnsent', 'lcqmc', 'bq']:
+if task_name in ["sst2", "yelpp", "rte", "mrpc", "chnsent", "lcqmc", "bq", "qnli", "qqp", "cola", "wnli"]:
     num_labels = 2
 elif task_name in ['snli', 'cmnli', 'ocnli']:
     num_labels = 3
@@ -225,6 +245,24 @@ class LMForwardAPI:
             self.tokenizer = BertTokenizer.from_pretrained(model_name)
             self.model = CPTForMaskedLM.from_pretrained(
                 model_name,
+                config=self.config,
+                n_prompt_tokens=n_prompt_tokens,
+            )
+        elif model_name in ['llama']:
+            model_path = '/home/export/base/ycsc_wangbenyou/yangyz/online1/toby/Black-Box-Tuning/Llama-3.1-8B-Instruct'
+            self.config = LlamaConfig.from_pretrained(model_path)
+            self.tokenizer = AutoTokenizer.from_pretrained(model_path)
+            self.model = LlamaForCausalLM.from_pretrained(
+                model_path,
+                config=self.config,
+                n_prompt_tokens=n_prompt_tokens,
+            )
+        elif model_name in ['deepseek']:
+            model_path = '/home/export/base/ycsc_wangbenyou/yangyz/online1/toby/Black-Box-Tuning/Llama-3.1-8B-Instruct'  # fix
+            self.config = DeepseekV2Config.from_pretrained(model_path)
+            self.tokenizer = AutoTokenizer.from_pretrained(model_path)
+            self.model = DeepseekV2ForCausalLM.from_pretrained(
+                model_path,
                 config=self.config,
                 n_prompt_tokens=n_prompt_tokens,
             )
@@ -409,7 +447,7 @@ class LMForwardAPI:
                         decoder_input_ids=train_data['decoder_input_ids'],
                         decoder_attention_mask=train_data['decoder_attention_mask'],
                     )
-                elif model_name in ['gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl']:
+                elif model_name in ['gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl', 'llama', 'deepseek']:
                     outputs = self.model(
                         input_ids=train_data['input_ids'],
                         attention_mask=train_data['attention_mask'],
@@ -505,7 +543,7 @@ class LMForwardAPI:
                             decoder_input_ids=dev_data['decoder_input_ids'],
                             decoder_attention_mask=dev_data['decoder_attention_mask'],
                         )['logits']
-                    elif model_name in ['gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl']:
+                    elif model_name in ['gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl', 'llama', 'deepseek']:
                         logits = self.model(
                             input_ids=dev_data['input_ids'],
                             attention_mask=dev_data['attention_mask'],
@@ -544,6 +582,12 @@ elif model_name in ['t5-small', 't5-base', 't5-large', 't5-3b']:
     tokenizer = T5Tokenizer.from_pretrained(model_name)
 elif model_name in ['gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl']:
     tokenizer = GPT2Tokenizer.from_pretrained(model_name)
+elif model_name in ['llama']:
+    model_path = '/home/export/base/ycsc_wangbenyou/yangyz/online1/toby/Black-Box-Tuning/Llama-3.1-8B-Instruct'
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
+elif model_name in ['deepseek']:
+    model_path = '/home/export/base/ycsc_wangbenyou/yangyz/online1/toby/Black-Box-Tuning/DeepSeek-V2-Lite'
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
 else:
     raise NotImplementedError
 
@@ -614,7 +658,7 @@ def construct_true_few_shot_data(train_data, k_shot):
     if model_name in ['t5-small', 't5-base', 't5-large', 't5-3b']:
         new_train_data.set_input("input_ids", "attention_mask", "decoder_input_ids", "decoder_attention_mask")
         new_dev_data.set_input("input_ids", "attention_mask", "decoder_input_ids", "decoder_attention_mask")
-    elif model_name in ['gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl']:
+    elif model_name in ['gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl', 'llama', 'deepseek']:
         new_train_data.set_input("input_ids", "attention_mask")
         new_dev_data.set_input("input_ids", "attention_mask")
     else:
@@ -663,7 +707,7 @@ if model_name in ['t5-small', 't5-base', 't5-large', 't5-3b']:
         'decoder_attention_mask': torch.tensor(dev_data['decoder_attention_mask'].get(list(range(len(dev_data))))),
         'labels': torch.tensor(dev_data['labels'].get(list(range(len(dev_data))))),
     }
-elif model_name in ['gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl']:
+elif model_name in ['gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl', 'llama', 'deepseek']:
     train_data = {
         'input_ids': torch.tensor(train_data['input_ids'].get(list(range(len(train_data))))),
         'attention_mask': torch.tensor(train_data['attention_mask'].get(list(range(len(train_data))))),
