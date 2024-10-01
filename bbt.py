@@ -2,7 +2,6 @@ import os
 import copy
 import time
 import random
-
 import torch
 # import fitlog
 import argparse
@@ -108,11 +107,11 @@ elif model_name in ['fnlp/cpt-large']:
     from dataloaders.dataloader_cpt import ChnSentLoader, AmazonLoader, THUCNewsLoader, BQLoader, CMNLILoader, CCPMLoader, TNewsLoader, OCNLILoader, LCQMCLoader, C3Loader
     from metrics.metrics_cpt import ChnSentMetric, AmazonMetric, THUCNewsMetric, BQMetric, CMNLIMetric, CCPMMetric, TNewsMetric, OCNLIMetric, LCQMCMetric, C3Metric
 elif model_name in ['llama']:
-    from dataloaders.dataloader_llama import SST2Loader, AGNewsLoader, YelpPLoader, DBPediaLoader, RTELoader, MRPCLoader, SNLILoader
-    from metrics.metrics_llama import SST2Metric, AGNewsMetric, YelpPMetric, DBPediaMetric, RTEMetric, MRPCMetric, SNLIMetric
-# elif model_name in ['deepseek']:
-#     from dataloaders.dataloader_deepseek import ChnSentLoader, AmazonLoader, THUCNewsLoader, BQLoader, CMNLILoader, CCPMLoader, TNewsLoader, OCNLILoader, LCQMCLoader, C3Loader
-#     from metrics.metrics_deepseek import ChnSentMetric, AmazonMetric, THUCNewsMetric, BQMetric, CMNLIMetric, CCPMMetric, TNewsMetric, OCNLIMetric, LCQMCMetric, C3Metric
+    from dataloaders.dataloader_llama import SST2Loader, AGNewsLoader, YelpPLoader, DBPediaLoader, RTELoader, MRPCLoader, SNLILoader, WNLILoader, CoLALoader, QQPLoader, QNLILoader
+    from metrics.metrics_llama import SST2Metric, AGNewsMetric, YelpPMetric, DBPediaMetric, RTEMetric, MRPCMetric, SNLIMetric, WNLIMetric, CoLAMetric, QQPMetric, QNLIMetric
+elif model_name in ['deepseek']:
+    from dataloaders.dataloader_llama import SST2Loader, AGNewsLoader, YelpPLoader, DBPediaLoader, RTELoader, MRPCLoader, SNLILoader, WNLILoader, CoLALoader, QQPLoader, QNLILoader
+    from metrics.metrics_llama import SST2Metric, AGNewsMetric, YelpPMetric, DBPediaMetric, RTEMetric, MRPCMetric, SNLIMetric, WNLIMetric, CoLAMetric, QQPMetric, QNLIMetric
 else:
     from dataloaders.dataloader import SST2Loader, AGNewsLoader, YelpPLoader, DBPediaLoader, RTELoader, MRPCLoader, SNLILoader
     from metrics.metrics import SST2Metric, AGNewsMetric, YelpPMetric, DBPediaMetric, RTEMetric, MRPCMetric, SNLIMetric
@@ -250,15 +249,17 @@ class LMForwardAPI:
                 model_path,
                 config=self.config,
                 n_prompt_tokens=n_prompt_tokens,
+                # load_in_8bit=True,
             )
         elif model_name in ['deepseek']:
-            model_path = '/home/export/base/ycsc_wangbenyou/yangyz/online1/toby/Black-Box-Tuning/Llama-3.1-8B-Instruct' # fix
+            model_path = '/home/export/base/ycsc_wangbenyou/yangyz/online1/toby/Black-Box-Tuning/DeepSeek-V2-Lite'  # fix
             self.config = DeepseekV2Config.from_pretrained(model_path)
             self.tokenizer = AutoTokenizer.from_pretrained(model_path)
             self.model = DeepseekV2ForCausalLM.from_pretrained(
                 model_path,
                 config=self.config,
                 n_prompt_tokens=n_prompt_tokens,
+                # load_in_8bit=True,
             )
         else:
             raise NotImplementedError
@@ -336,7 +337,7 @@ class LMForwardAPI:
             self.metric_name = 'RTEMetric'
         elif task_name == 'mrpc':
             self.metric = MRPCMetric(target='labels', pred='logits', tokenizer=tokenizer)
-            self.metric_key = 'f1' # fix
+            self.metric_key = 'acc' # fix
             self.metric_name = 'MRPCMetric'
         elif task_name == 'snli':
             self.metric = SNLIMetric(target='labels', pred='logits', tokenizer=tokenizer)
@@ -382,18 +383,22 @@ class LMForwardAPI:
             self.metric = C3Metric(target='labels', pred='logits', tokenizer=tokenizer)
             self.metric_key = 'acc'
             self.metric_name = 'C3Metric'
-        # elif task_name == "qqp":
-        #     self.metric = QQPMetric(target="labels", pred="logits", tokenizer=self.tokenizer)
-        #     self.metric_key = "acc"
-        #     self.metric_name = "QQPMetric"
-        # elif task_name == "cola":
-        #     self.metric = CoLAMetric(target="labels", pred="logits", tokenizer=self.tokenizer)
-        #     self.metric_key = "acc"
-        #     self.metric_name = "CoLAMetric"
-        # elif task_name == "wnli":
-        #     self.metric = WNLIMetric(target="labels", pred="logits", tokenizer=self.tokenizer)
-        #     self.metric_key = "acc"
-        #     self.metric_name = "WNLIMetric"
+        elif task_name == "qqp":
+            self.metric = QQPMetric(target="labels", pred="logits", tokenizer=self.tokenizer)
+            self.metric_key = "acc"
+            self.metric_name = "QQPMetric"
+        elif task_name == "cola":
+            self.metric = CoLAMetric(target="labels", pred="logits", tokenizer=self.tokenizer)
+            self.metric_key = "acc"
+            self.metric_name = "CoLAMetric"
+        elif task_name == "wnli":
+            self.metric = WNLIMetric(target="labels", pred="logits", tokenizer=self.tokenizer)
+            self.metric_key = "acc"
+            self.metric_name = "WNLIMetric"
+        elif task_name == "qnli":
+            self.metric = QNLIMetric(target="labels", pred="logits", tokenizer=self.tokenizer)
+            self.metric_key = "acc"
+            self.metric_name = "QNLIMetric"
         else:
             raise NotImplementedError
         self.margin = self.metric.margin
@@ -595,6 +600,10 @@ if model_name not in ['fnlp/cpt-large']:
         'rte': RTELoader,
         'mrpc': MRPCLoader,
         'snli': SNLILoader,
+        "qqp": QQPLoader,
+        "cola": CoLALoader,
+        "wnli": WNLILoader,
+        "qnli": QNLILoader,
     }
 else:
     DataLoader = {

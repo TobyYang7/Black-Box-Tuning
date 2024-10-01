@@ -44,6 +44,8 @@ from sklearn.metrics import accuracy_score, f1_score, matthews_corrcoef
 from transformers import AutoTokenizer
 from utils import hinge_loss
 
+MODEL_PATH = '/home/export/base/ycsc_wangbenyou/yangyz/online1/toby/Black-Box-Tuning/Llama-3.1-8B-Instruct'
+
 
 class SST2Metric(MetricBase):
     def __init__(self, pred=None, target=None, seq_len=None, tokenizer=None):
@@ -56,7 +58,7 @@ class SST2Metric(MetricBase):
         self.ce_fct = nn.CrossEntropyLoss(reduction="sum")
         self.margin = 2
         if tokenizer is None:
-            tokenizer = AutoTokenizer.from_pretrained('/home/export/base/ycsc_wangbenyou/yangyz/online1/toby/Black-Box-Tuning/Llama-3.1-8B-Instruct')
+            self.tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
         self.label_map = {
             tokenizer.encode("negative", add_special_tokens=False)[0]: 0,  # negative
             tokenizer.encode("positive", add_special_tokens=False)[0]: 1,  # positive
@@ -72,10 +74,6 @@ class SST2Metric(MetricBase):
                 f"`target` in {_get_func_signature(self.evaluate)} must be torch.Tensor," f"got {type(target)}."
             )
         # pred: batch_size x seq_len x vocab_size
-        # fix
-        # pred = pred.cpu()
-        # target = target.cpu()
-
         self.ce_loss += self.ce_fct(pred, target).item()
 
         # calculate hinge loss
@@ -103,7 +101,7 @@ class SST2Metric(MetricBase):
             self.hinge = 0.0
             self.ce_loss = 0.0
         return {"acc": acc, "hinge": hinge_loss, "ce": ce_loss}
-    
+
 
 class QNLIMetric(MetricBase):
     def __init__(self, pred=None, target=None, seq_len=None, tokenizer=None):
@@ -116,7 +114,7 @@ class QNLIMetric(MetricBase):
         self.ce_fct = nn.CrossEntropyLoss(reduction="sum")
         self.margin = 2
         if tokenizer is None:
-            tokenizer = AutoTokenizer.from_pretrained('/home/export/base/ycsc_wangbenyou/yangyz/online1/toby/Black-Box-Tuning/Llama-3.1-8B-Instruct')
+            self.tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
         self.label_map = {
             tokenizer.encode("No", add_special_tokens=False)[0]: 0,  # negative
             tokenizer.encode("Yes", add_special_tokens=False)[0]: 1,  # positive
@@ -159,7 +157,8 @@ class QNLIMetric(MetricBase):
             self.hinge = 0.0
             self.ce_loss = 0.0
         return {"acc": acc, "hinge": hinge_loss, "ce": ce_loss}
-    
+
+
 class QQPMetric(MetricBase):
     def __init__(self, pred=None, target=None, seq_len=None, tokenizer=None):
         super().__init__()
@@ -171,7 +170,7 @@ class QQPMetric(MetricBase):
         self.ce_fct = nn.CrossEntropyLoss(reduction="sum")
         self.margin = 2
         if tokenizer is None:
-            tokenizer = AutoTokenizer.from_pretrained('/home/export/base/ycsc_wangbenyou/yangyz/online1/toby/Black-Box-Tuning/Llama-3.1-8B-Instruct')
+            self.tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
         self.label_map = {
             tokenizer.encode("No", add_special_tokens=False)[0]: 0,  # negative
             tokenizer.encode("Yes", add_special_tokens=False)[0]: 1,  # positive
@@ -214,6 +213,7 @@ class QQPMetric(MetricBase):
             self.hinge = 0.0
             self.ce_loss = 0.0
         return {"acc": acc, "hinge": hinge_loss, "ce": ce_loss}
+
 
 class CoLAMetric(MetricBase):
     def __init__(self, pred=None, target=None, seq_len=None, tokenizer=None):
@@ -226,7 +226,7 @@ class CoLAMetric(MetricBase):
         self.ce_fct = nn.CrossEntropyLoss(reduction="sum")
         self.margin = 2
         if tokenizer is None:
-            tokenizer = AutoTokenizer.from_pretrained('/home/export/base/ycsc_wangbenyou/yangyz/online1/toby/Black-Box-Tuning/Llama-3.1-8B-Instruct')
+            self.tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
         self.label_map = {
             tokenizer.encode("Unacceptable", add_special_tokens=False)[0]: 0,  # negative
             tokenizer.encode("Acceptable", add_special_tokens=False)[0]: 1,    # positive
@@ -269,7 +269,8 @@ class CoLAMetric(MetricBase):
             self.hinge = 0.0
             self.ce_loss = 0.0
         return {"acc": acc, "hinge": hinge_loss, "ce": ce_loss}
-    
+
+
 class WNLIMetric(MetricBase):
     def __init__(self, pred=None, target=None, seq_len=None, tokenizer=None):
         super().__init__()
@@ -281,7 +282,7 @@ class WNLIMetric(MetricBase):
         self.ce_fct = nn.CrossEntropyLoss(reduction="sum")
         self.margin = 2
         if tokenizer is None:
-            tokenizer = AutoTokenizer.from_pretrained('/home/export/base/ycsc_wangbenyou/yangyz/online1/toby/Black-Box-Tuning/Llama-3.1-8B-Instruct')
+            self.tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
         self.label_map = {
             tokenizer.encode("not entailment", add_special_tokens=False)[0]: 0,  # negative
             tokenizer.encode("entailment", add_special_tokens=False)[0]: 1,  # positive
@@ -324,7 +325,8 @@ class WNLIMetric(MetricBase):
             self.hinge = 0.0
             self.ce_loss = 0.0
         return {"acc": acc, "hinge": hinge_loss, "ce": ce_loss}
-    
+
+
 class YelpPMetric(MetricBase):
     def __init__(self, pred=None, target=None, seq_len=None, tokenizer=None):
         super().__init__()
@@ -336,7 +338,7 @@ class YelpPMetric(MetricBase):
         self.ce_fct = nn.CrossEntropyLoss(reduction="sum")
         self.margin = 2
         if tokenizer is None:
-            tokenizer = AutoTokenizer.from_pretrained('/home/export/base/ycsc_wangbenyou/yangyz/online1/toby/Black-Box-Tuning/Llama-3.1-8B-Instruct')
+            self.tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
         self.label_map = {
             tokenizer.encode("bad", add_special_tokens=False)[0]: 0,  # negative
             tokenizer.encode("great", add_special_tokens=False)[0]: 1,  # positive
@@ -391,7 +393,7 @@ class AGNewsMetric(MetricBase):
         self.ce_fct = nn.CrossEntropyLoss(reduction="sum")
         self.margin = 2
         if tokenizer is None:
-            tokenizer = AutoTokenizer.from_pretrained('/home/export/base/ycsc_wangbenyou/yangyz/online1/toby/Black-Box-Tuning/Llama-3.1-8B-Instruct')
+            self.tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
         self.label_map = {
             tokenizer.encode("World", add_special_tokens=False)[0]: 0,
             tokenizer.encode("Sports", add_special_tokens=False)[0]: 1,
@@ -448,7 +450,7 @@ class DBPediaMetric(MetricBase):
         self.ce_fct = nn.CrossEntropyLoss(reduction="sum")
         self.margin = 2
         if tokenizer is None:
-            tokenizer = AutoTokenizer.from_pretrained('/home/export/base/ycsc_wangbenyou/yangyz/online1/toby/Black-Box-Tuning/Llama-3.1-8B-Instruct')
+            self.tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
         self.label_map = {
             tokenizer.encode("Company", add_special_tokens=False)[0]: 0,
             tokenizer.encode("Education", add_special_tokens=False)[0]: 1,
@@ -515,7 +517,7 @@ class MRPCMetric(MetricBase):
         self.ce_fct = nn.CrossEntropyLoss(reduction="sum")
         self.margin = 2
         if tokenizer is None:
-            tokenizer = AutoTokenizer.from_pretrained('/home/export/base/ycsc_wangbenyou/yangyz/online1/toby/Black-Box-Tuning/Llama-3.1-8B-Instruct')
+            self.tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
         self.label_map = {
             tokenizer.encode("No", add_special_tokens=False)[0]: 0,  # not dumplicate
             tokenizer.encode("Yes", add_special_tokens=False)[0]: 1,  # dumplicate
@@ -566,7 +568,7 @@ class MNLIMetric(MetricBase):
         self._pred = []
         self._target = []
         if tokenizer is None:
-            tokenizer = AutoTokenizer.from_pretrained('/home/export/base/ycsc_wangbenyou/yangyz/online1/toby/Black-Box-Tuning/Llama-3.1-8B-Instruct')
+            self.tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
         self.label_map = {
             tokenizer.encode("Yes", add_special_tokens=False)[0]: 0,
             tokenizer.encode("Maybe", add_special_tokens=False)[0]: 1,
@@ -610,7 +612,7 @@ class RTEMetric(MetricBase):
         self.ce_fct = nn.CrossEntropyLoss(reduction="sum")
         self.margin = 2
         if tokenizer is None:
-            tokenizer = AutoTokenizer.from_pretrained('/home/export/base/ycsc_wangbenyou/yangyz/online1/toby/Black-Box-Tuning/Llama-3.1-8B-Instruct')
+            self.tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
         self.label_map = {
             tokenizer.encode("Yes", add_special_tokens=False)[0]: 0,
             tokenizer.encode("No", add_special_tokens=False)[0]: 1,
@@ -665,7 +667,7 @@ class SNLIMetric(MetricBase):
         self.ce_fct = nn.CrossEntropyLoss(reduction="sum")
         self.margin = 2
         if tokenizer is None:
-            tokenizer = AutoTokenizer.from_pretrained('/home/export/base/ycsc_wangbenyou/yangyz/online1/toby/Black-Box-Tuning/Llama-3.1-8B-Instruct')
+            self.tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
         self.label_map = {
             tokenizer.encode("Yes", add_special_tokens=False)[0]: 0,
             tokenizer.encode("Maybe", add_special_tokens=False)[0]: 1,

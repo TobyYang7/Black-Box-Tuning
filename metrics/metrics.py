@@ -297,7 +297,7 @@ class MRPCMetric(MetricBase):
             self._pred = []
             self.hinge = 0.0
             self.ce_loss = 0.0
-        return {'f1': f1,
+        return {'acc': acc,
                 'hinge': hinge_loss,
                 'ce': ce_loss}
 

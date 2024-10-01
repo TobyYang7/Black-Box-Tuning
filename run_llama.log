@@ -1,0 +1,99 @@
+nohup: 忽略输入
+Running task for dataset: sst2
+/home/export/base/ycsc_wangbenyou/yangyz/.conda/envs/toby/lib/python3.8/site-packages/cma/s.py:15: UserWarning: Could not import matplotlib.pyplot, therefore ``cma.plot()`` etc. is not available
+  _warnings.warn('Could not import matplotlib.pyplot, therefore'
+Read cache from caches/data_llama_sst2_50_42.pt.
+# of train data: 32
+Example:
++------------------------------+------------------------------+--------+
+| input_ids                    | attention_mask               | labels |
++------------------------------+------------------------------+--------+
+| [128000, 1000, 1001, 1002... | [1, 1, 1, 1, 1, 1, 1, 1, ... | 43324  |
++------------------------------+------------------------------+--------+
+
+# of dev data: 32
+Example:
++------------------------------+------------------------------+--------+
+| input_ids                    | attention_mask               | labels |
++------------------------------+------------------------------+--------+
+| [128000, 1000, 1001, 1002... | [1, 1, 1, 1, 1, 1, 1, 1, ... | 31587  |
++------------------------------+------------------------------+--------+
+
+# of test data: 872
+Example:
++------------------------------+------------------------------+--------+
+| input_ids                    | attention_mask               | labels |
++------------------------------+------------------------------+--------+
+| [128000, 1000, 1001, 1002... | [1, 1, 1, 1, 1, 1, 1, 1, ... | 31587  |
++------------------------------+------------------------------+--------+
+# of train data: 32
+# of dev data: 32
+# of test data: 872
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:04<00:14,  4.90s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:09<00:08,  4.44s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:13<00:04,  4.61s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:14<00:00,  3.19s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:14<00:00,  3.71s/it]
+Starting from v4.46, the `logits` model output will have the same type as the model (except at train time, where it will always be FP32)
+/home/export/base/ycsc_wangbenyou/yangyz/.conda/envs/toby/lib/python3.8/site-packages/cma/utilities/utils.py:347: UserWarning: The number of solutions passed to `tell` should generally be the same as (or close to) the population size,
+  was: len(solutions)=200 != 20=popsize.
+  To suppress this warning execute
+warnings.filterwarnings('ignore', message='The number of solutions passed to `tell` should.*')
+ (time=Oct  2 02:48:42 2024 class=CMAEvolutionStrategy method=tell iteration=1)
+  warnings.warn(msg + ' (time={}'.format(time.asctime()[4:]) +
+/home/export/base/ycsc_wangbenyou/yangyz/.conda/envs/toby/lib/python3.8/site-packages/cma/utilities/utils.py:347: UserWarning: The number of solutions passed to `tell` should generally be the same as (or close to) the population size,
+  was: len(solutions)=400 != 20=popsize.
+  To suppress this warning execute
+warnings.filterwarnings('ignore', message='The number of solutions passed to `tell` should.*')
+ (time=Oct  2 02:54:43 2024 class=CMAEvolutionStrategy method=tell iteration=2)
+  warnings.warn(msg + ' (time={}'.format(time.asctime()[4:]) +
+[Embedding] mu: 2.2673730200040154e-05 | std: 0.010571236722171307 [RandProj]  mu: 0.0 | std: 0.000472760078340342
+Population Size: 20
+Serial Evaluation.
+[# API Calls 100] loss: 0.637. Current perf: 0.5312. Best perf so far: 0.6875
+[# API Calls 200] loss: 0.6373. Current perf: 0.5312. Best perf so far: 0.6875
+********* Evaluated on dev set *********
+Dev loss: 0.6475. Dev perf: 0.5. Best dev perf: 0.5
+********* Done *********
+----------------------
+[# API Calls 300] loss: 0.571. Current perf: 0.6562. Best perf so far: 0.6875
+[# API Calls 400] loss: 0.6826. Current perf: 0.5. Best perf so far: 0.6875
+********* Evaluated on dev set *********
+Dev loss: 0.7083. Dev perf: 0.5. Best dev perf: 0.5
+********* Done *********
+----------------------
+Done. Elapsed time: 12.135118277867635 (mins)
+Evaluate on test data...
+Test acc: 0.5938
+
+real	13m34.904s
+user	15m24.890s
+sys	10m10.542s
+Running task for dataset: rte
+/home/export/base/ycsc_wangbenyou/yangyz/.conda/envs/toby/lib/python3.8/site-packages/cma/s.py:15: UserWarning: Could not import matplotlib.pyplot, therefore ``cma.plot()`` etc. is not available
+  _warnings.warn('Could not import matplotlib.pyplot, therefore'
+Read cache from caches/data_llama_rte_50_42.pt.
+# of train data: 32
+Example:
++------------------------------+------------------------------+--------+
+| input_ids                    | attention_mask               | labels |
++------------------------------+------------------------------+--------+
+| [128000, 1000, 1001, 1002... | [1, 1, 1, 1, 1, 1, 1, 1, ... | 9642   |
++------------------------------+------------------------------+--------+
+
+# of dev data: 32
+Example:
++------------------------------+------------------------------+--------+
+| input_ids                    | attention_mask               | labels |
++------------------------------+------------------------------+--------+
+| [128000, 1000, 1001, 1002... | [1, 1, 1, 1, 1, 1, 1, 1, ... | 2822   |
++------------------------------+------------------------------+--------+
+
+# of test data: 277
+Example:
++------------------------------+------------------------------+--------+
+| input_ids                    | attention_mask               | labels |
++------------------------------+------------------------------+--------+
+| [128000, 1000, 1001, 1002... | [1, 1, 1, 1, 1, 1, 1, 1, ... | 2822   |
++------------------------------+------------------------------+--------+
+# of train data: 32
+# of dev data: 32
+# of test data: 277
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:04<00:12,  4.17s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:08<00:08,  4.14s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:12<00:04,  4.20s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:13<00:00,  2.90s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:13<00:00,  3.37s/it]
+Starting from v4.46, the `logits` model output will have the same type as the model (except at train time, where it will always be FP32)

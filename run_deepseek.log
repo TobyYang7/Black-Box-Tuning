@@ -1,0 +1,209 @@
+nohup: 忽略输入
+Running task for dataset: sst2
+/home/export/base/ycsc_wangbenyou/yangyz/.conda/envs/toby/lib/python3.8/site-packages/cma/s.py:15: UserWarning: Could not import matplotlib.pyplot, therefore ``cma.plot()`` etc. is not available
+  _warnings.warn('Could not import matplotlib.pyplot, therefore'
+DeepseekV2ForCausalLM has generative capabilities, as `prepare_inputs_for_generation` is explicitly overwritten. However, it doesn't directly inherit from `GenerationMixin`. From 👉v4.50👈 onwards, `PreTrainedModel` will NOT inherit from `GenerationMixin`, and this model will lose the ability to call `generate` and other related functions.
+  - If you're using `trust_remote_code=True`, you can get rid of this warning by loading the model with an auto class. See https://huggingface.co/docs/transformers/en/model_doc/auto#auto-classes
+  - If you are the owner of the model architecture code, please modify your model class such that it inherits from `GenerationMixin` (after `PreTrainedModel`, otherwise you'll get an exception).
+  - If you are not the owner of the model architecture class, please contact the model code owner to update it.
+Read cache from caches/data_deepseek_sst2_50_42.pt.
+# of train data: 32
+Example:
++------------------------------+------------------------------+--------+
+| input_ids                    | attention_mask               | labels |
++------------------------------+------------------------------+--------+
+| [100000, 1000, 1001, 1002... | [1, 1, 1, 1, 1, 1, 1, 1, ... | 20805  |
++------------------------------+------------------------------+--------+
+
+# of dev data: 32
+Example:
++------------------------------+------------------------------+--------+
+| input_ids                    | attention_mask               | labels |
++------------------------------+------------------------------+--------+
+| [100000, 1000, 1001, 1002... | [1, 1, 1, 1, 1, 1, 1, 1, ... | 28573  |
++------------------------------+------------------------------+--------+
+
+# of test data: 872
+Example:
++------------------------------+------------------------------+--------+
+| input_ids                    | attention_mask               | labels |
++------------------------------+------------------------------+--------+
+| [100000, 1000, 1001, 1002... | [1, 1, 1, 1, 1, 1, 1, 1, ... | 28573  |
++------------------------------+------------------------------+--------+
+# of train data: 32
+# of dev data: 32
+# of test data: 872
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:16<00:48, 16.30s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:25<00:24, 12.14s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:52<00:18, 18.82s/it]Loading checkpoint shards: 100%|██████████| 4/4 [02:04<00:00, 39.84s/it]Loading checkpoint shards: 100%|██████████| 4/4 [02:04<00:00, 31.09s/it]
+/home/export/base/ycsc_wangbenyou/yangyz/.conda/envs/toby/lib/python3.8/site-packages/cma/utilities/utils.py:347: UserWarning: The number of solutions passed to `tell` should generally be the same as (or close to) the population size,
+  was: len(solutions)=200 != 20=popsize.
+  To suppress this warning execute
+warnings.filterwarnings('ignore', message='The number of solutions passed to `tell` should.*')
+ (time=Oct  2 02:47:15 2024 class=CMAEvolutionStrategy method=tell iteration=1)
+  warnings.warn(msg + ' (time={}'.format(time.asctime()[4:]) +
+/home/export/base/ycsc_wangbenyou/yangyz/.conda/envs/toby/lib/python3.8/site-packages/cma/utilities/utils.py:347: UserWarning: The number of solutions passed to `tell` should generally be the same as (or close to) the population size,
+  was: len(solutions)=400 != 20=popsize.
+  To suppress this warning execute
+warnings.filterwarnings('ignore', message='The number of solutions passed to `tell` should.*')
+ (time=Oct  2 02:49:48 2024 class=CMAEvolutionStrategy method=tell iteration=2)
+  warnings.warn(msg + ' (time={}'.format(time.asctime()[4:]) +
+/home/export/base/ycsc_wangbenyou/yangyz/.conda/envs/toby/lib/python3.8/site-packages/cma/utilities/utils.py:347: UserWarning: The number of solutions passed to `tell` should generally be the same as (or close to) the population size,
+  was: len(solutions)=600 != 20=popsize.
+  To suppress this warning execute
+warnings.filterwarnings('ignore', message='The number of solutions passed to `tell` should.*')
+ (time=Oct  2 02:52:22 2024 class=CMAEvolutionStrategy method=tell iteration=3)
+  warnings.warn(msg + ' (time={}'.format(time.asctime()[4:]) +
+/home/export/base/ycsc_wangbenyou/yangyz/.conda/envs/toby/lib/python3.8/site-packages/cma/utilities/utils.py:347: UserWarning: The number of solutions passed to `tell` should generally be the same as (or close to) the population size,
+  was: len(solutions)=800 != 20=popsize.
+  To suppress this warning execute
+warnings.filterwarnings('ignore', message='The number of solutions passed to `tell` should.*')
+ (time=Oct  2 02:54:55 2024 class=CMAEvolutionStrategy method=tell iteration=4)
+  warnings.warn(msg + ' (time={}'.format(time.asctime()[4:]) +
+/home/export/base/ycsc_wangbenyou/yangyz/.conda/envs/toby/lib/python3.8/site-packages/cma/utilities/utils.py:347: UserWarning: The number of solutions passed to `tell` should generally be the same as (or close to) the population size,
+  was: len(solutions)=1000 != 20=popsize.
+  To suppress this warning execute
+warnings.filterwarnings('ignore', message='The number of solutions passed to `tell` should.*')
+ (time=Oct  2 02:57:29 2024 class=CMAEvolutionStrategy method=tell iteration=5)
+  warnings.warn(msg + ' (time={}'.format(time.asctime()[4:]) +
+[Embedding] mu: -0.0005161307635717094 | std: 0.13152725994586945 [RandProj]  mu: 0.0 | std: 0.005882077882664987
+Population Size: 20
+Serial Evaluation.
+[# API Calls 20] loss: 1.621. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 40] loss: 1.667. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 60] loss: 1.5737. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 80] loss: 1.5988. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 100] loss: 1.488. Current perf: 0.5312. Best perf so far: 0.5312
+********* Evaluated on dev set *********
+Dev loss: 1.5138. Dev perf: 0.5312. Best dev perf: 0.5312
+********* Done *********
+[# API Calls 120] loss: 1.5651. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 140] loss: 1.5488. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 160] loss: 1.6512. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 180] loss: 1.5471. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 200] loss: 1.6113. Current perf: 0.5312. Best perf so far: 0.5312
+********* Evaluated on dev set *********
+Dev loss: 1.6218. Dev perf: 0.5312. Best dev perf: 0.5312
+********* Done *********
+----------------------
+[# API Calls 220] loss: 1.4247. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 240] loss: 1.5671. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 260] loss: 1.4718. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 280] loss: 1.4035. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 300] loss: 1.4877. Current perf: 0.5312. Best perf so far: 0.5312
+********* Evaluated on dev set *********
+Dev loss: 1.4929. Dev perf: 0.5312. Best dev perf: 0.5312
+********* Done *********
+[# API Calls 320] loss: 1.5188. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 340] loss: 1.6261. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 360] loss: 1.4873. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 380] loss: 1.4585. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 400] loss: 1.5473. Current perf: 0.5312. Best perf so far: 0.5312
+********* Evaluated on dev set *********
+Dev loss: 1.5504. Dev perf: 0.5312. Best dev perf: 0.5312
+********* Done *********
+----------------------
+[# API Calls 420] loss: 1.3404. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 440] loss: 1.6459. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 460] loss: 1.4771. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 480] loss: 1.4959. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 500] loss: 1.3755. Current perf: 0.5312. Best perf so far: 0.5312
+********* Evaluated on dev set *********
+Dev loss: 1.4052. Dev perf: 0.5312. Best dev perf: 0.5312
+********* Done *********
+[# API Calls 520] loss: 1.3453. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 540] loss: 1.4991. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 560] loss: 1.4702. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 580] loss: 1.5626. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 600] loss: 1.5011. Current perf: 0.5312. Best perf so far: 0.5312
+********* Evaluated on dev set *********
+Dev loss: 1.5228. Dev perf: 0.5312. Best dev perf: 0.5312
+********* Done *********
+----------------------
+[# API Calls 620] loss: 1.2531. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 640] loss: 1.5253. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 660] loss: 1.5948. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 680] loss: 1.4564. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 700] loss: 1.1205. Current perf: 0.5312. Best perf so far: 0.5312
+********* Evaluated on dev set *********
+Dev loss: 1.1693. Dev perf: 0.5312. Best dev perf: 0.5312
+********* Done *********
+[# API Calls 720] loss: 1.5835. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 740] loss: 1.2158. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 760] loss: 0.8897. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 780] loss: 1.3814. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 800] loss: 1.2276. Current perf: 0.5312. Best perf so far: 0.5312
+********* Evaluated on dev set *********
+Dev loss: 1.3517. Dev perf: 0.5312. Best dev perf: 0.5312
+********* Done *********
+----------------------
+[# API Calls 820] loss: 0.8006. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 840] loss: 1.0666. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 860] loss: 1.1282. Current perf: 0.5312. Best perf so far: 0.5312
+[# API Calls 880] loss: 1.0875. Current perf: 0.5312. Best perf so far: 0.5938
+[# API Calls 900] loss: 0.9259. Current perf: 0.5312. Best perf so far: 0.75
+********* Evaluated on dev set *********
+Dev loss: 0.9789. Dev perf: 0.5312. Best dev perf: 0.5312
+********* Done *********
+[# API Calls 920] loss: 0.7918. Current perf: 0.5312. Best perf so far: 0.75
+[# API Calls 940] loss: 0.9304. Current perf: 0.5312. Best perf so far: 0.75
+[# API Calls 960] loss: 0.8632. Current perf: 0.5312. Best perf so far: 0.75
+[# API Calls 980] loss: 0.9573. Current perf: 0.5312. Best perf so far: 0.75
+[# API Calls 1000] loss: 0.8114. Current perf: 0.5312. Best perf so far: 0.75
+********* Evaluated on dev set *********
+Dev loss: 0.8278. Dev perf: 0.5312. Best dev perf: 0.5312
+********* Done *********
+----------------------
+Done. Elapsed time: 12.856604325771332 (mins)
+Evaluate on test data...
+Test acc: 0.5312
+
+real	16m11.815s
+user	45m26.401s
+sys	15m17.078s
+Running task for dataset: rte
+/home/export/base/ycsc_wangbenyou/yangyz/.conda/envs/toby/lib/python3.8/site-packages/cma/s.py:15: UserWarning: Could not import matplotlib.pyplot, therefore ``cma.plot()`` etc. is not available
+  _warnings.warn('Could not import matplotlib.pyplot, therefore'
+Map:   0%|          | 0/2490 [00:00<?, ? examples/s]Map:   2%|▏         | 60/2490 [00:00<00:04, 502.62 examples/s]Map:   9%|▉         | 233/2490 [00:00<00:01, 1169.34 examples/s]Map:  17%|█▋        | 433/2490 [00:00<00:01, 1530.26 examples/s]Map:  29%|██▉       | 716/2490 [00:00<00:00, 2025.71 examples/s]Map:  40%|████      | 1000/2490 [00:00<00:00, 1719.30 examples/s]Map:  55%|█████▌    | 1378/2490 [00:00<00:00, 2279.84 examples/s]Map:  71%|███████   | 1761/2490 [00:00<00:00, 2711.42 examples/s]Map:  85%|████████▌ | 2120/2490 [00:00<00:00, 2959.38 examples/s]Map: 100%|██████████| 2490/2490 [00:01<00:00, 3163.78 examples/s]Map: 100%|██████████| 2490/2490 [00:01<00:00, 2432.06 examples/s]
+{'sentence1': 'No Weapons of Mass Destruction Found in Iraq Yet.', 'sentence2': 'Weapons of Mass Destruction Found in Iraq.', 'label': 1, 'idx': 0, 'input_text': 'tyular This Wecess可 knowough peERprise year diffption assientighunt see form . first should也 fin)$ couldен出_{\\line еauseothrightround op�abelsh les--------ats� regits act unaiel . No Weapons of Mass Destruction Found in Iraq Yet. ? Weapons of Mass Destruction Found in Iraq.', 'target_text': 'No'}
+Map:   0%|          | 0/2490 [00:00<?, ? examples/s]Map:  40%|████      | 1000/2490 [00:00<00:00, 4908.38 examples/s]Map:  80%|████████  | 2000/2490 [00:00<00:00, 6293.66 examples/s]Map: 100%|██████████| 2490/2490 [00:00<00:00, 6111.22 examples/s]
+Map:   0%|          | 0/277 [00:00<?, ? examples/s]Map:  71%|███████▏  | 198/277 [00:00<00:00, 1952.62 examples/s]Map: 100%|██████████| 277/277 [00:00<00:00, 1949.24 examples/s]
+{'sentence1': 'Dana Reeve, the widow of the actor Christopher Reeve, has died of lung cancer at age 44, according to the Christopher Reeve Foundation.', 'sentence2': 'Christopher Reeve had an accident.', 'label': 1, 'idx': 0, 'input_text': 'tyular This Wecess可 knowough peERprise year diffption assientighunt see form . first should也 fin)$ couldен出_{\\line еauseothrightround op�abelsh les--------ats� regits act unaiel . Dana Reeve, the widow of the actor Christopher Reeve, has died of lung cancer at age 44, according to the Christopher Reeve Foundation. ? Christopher Reeve had an accident.', 'target_text': 'No'}
+Map:   0%|          | 0/277 [00:00<?, ? examples/s]Map: 100%|██████████| 277/277 [00:00<00:00, 7062.75 examples/s]
+DeepseekV2ForCausalLM has generative capabilities, as `prepare_inputs_for_generation` is explicitly overwritten. However, it doesn't directly inherit from `GenerationMixin`. From 👉v4.50👈 onwards, `PreTrainedModel` will NOT inherit from `GenerationMixin`, and this model will lose the ability to call `generate` and other related functions.
+  - If you're using `trust_remote_code=True`, you can get rid of this warning by loading the model with an auto class. See https://huggingface.co/docs/transformers/en/model_doc/auto#auto-classes
+  - If you are the owner of the model architecture code, please modify your model class such that it inherits from `GenerationMixin` (after `PreTrainedModel`, otherwise you'll get an exception).
+  - If you are not the owner of the model architecture class, please contact the model code owner to update it.
+Save cache to caches/data_deepseek_rte_50_42.pt.
+# of train data: 32
+Example:
++------------------------------+------------------------------+--------+
+| input_ids                    | attention_mask               | labels |
++------------------------------+------------------------------+--------+
+| [100000, 1000, 1001, 1002... | [1, 1, 1, 1, 1, 1, 1, 1, ... | 5661   |
++------------------------------+------------------------------+--------+
+
+# of dev data: 32
+Example:
++------------------------------+------------------------------+--------+
+| input_ids                    | attention_mask               | labels |
++------------------------------+------------------------------+--------+
+| [100000, 1000, 1001, 1002... | [1, 1, 1, 1, 1, 1, 1, 1, ... | 3233   |
++------------------------------+------------------------------+--------+
+
+# of test data: 277
+Example:
++------------------------------+------------------------------+--------+
+| input_ids                    | attention_mask               | labels |
++------------------------------+------------------------------+--------+
+| [100000, 1000, 1001, 1002... | [1, 1, 1, 1, 1, 1, 1, 1, ... | 3233   |
++------------------------------+------------------------------+--------+
+# of train data: 32
+# of dev data: 32
+# of test data: 277
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:16<00:50, 16.94s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:35<00:36, 18.09s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:54<00:18, 18.15s/it]Loading checkpoint shards: 100%|██████████| 4/4 [01:06<00:00, 15.78s/it]Loading checkpoint shards: 100%|██████████| 4/4 [01:06<00:00, 16.55s/it]huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
